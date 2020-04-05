@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:hnapp/src/article.dart';
+import 'json_parsing.dart';
+import 'package:http/http.dart' as http;
 
 void main() => runApp(MyApp());
 
@@ -45,7 +46,23 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  List<Article> _articles = articles;
+  List<Article> _articles = [];
+//  List<Article> _getArticles = [];
+
+  List<int> _ids = [
+    22748247,
+    22768494,
+    22758218,
+    22774057,
+    22754461,
+    22764910,
+    22767843,
+    22769263,
+    22756053,
+    22762173,
+    22750850,
+    22766681
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -63,11 +80,24 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
       body: RefreshIndicator(
         child: ListView(
-          children: _articles.map(_buildItem).toList(),
+          children: _ids.map((i) =>
+            FutureBuilder<Article>(
+              future: _getArticle(i),
+              builder: (BuildContext context, AsyncSnapshot<Article> snapshot) {
+                if (snapshot.connectionState == ConnectionState.done) {
+                  return _buildItem(snapshot.data);
+                } else {
+                  return Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Center(child: CircularProgressIndicator(),),
+                  );
+                }
+              },
+            )
+          ).toList(),
         ),
         onRefresh: () async {
           await Future.delayed(Duration(seconds: 1));
-
           setState(() {
             _articles.removeAt(0);
           });
@@ -83,6 +113,14 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
+  Future<Article> _getArticle(int id) async {
+    final storyUrl = "https://hacker-news.firebaseio.com/v0/item/${id}.json";
+    final storyRes = await http.get(storyUrl);
+    if (storyRes.statusCode == 200) {
+      return Article.fromJsonString(storyRes.body);
+    }
+  }
+
   Widget _buildItem(Article article) {
     return Padding(
       padding: const EdgeInsets.all(16.0),
@@ -91,14 +129,14 @@ class _MyHomePageState extends State<MyHomePage> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: <Widget>[
-                Text("${article.commentsCount} comments"),
+                Text("${article.kids.length} comments"),
                 IconButton(icon: Icon(Icons.launch), onPressed: () {
 
                 })
               ],
             )
           ],
-        title: Text(article.text, style: TextStyle(fontSize: 20),),
+        title: Text(article.title, style: TextStyle(fontSize: 20),),
       ),
     );
   }
