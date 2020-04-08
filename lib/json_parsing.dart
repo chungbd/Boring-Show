@@ -26,6 +26,7 @@ abstract class Article implements Built<Article, ArticleBuilder> {
 
   String get type;
 
+  @nullable
   String get url;
 
   Article._();

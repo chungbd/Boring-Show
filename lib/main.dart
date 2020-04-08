@@ -1,10 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:hnapp/bloc/hn_bloc.dart';
 import 'json_parsing.dart';
-import 'package:http/http.dart' as http;
+import 'package:flutter_bloc/flutter_bloc.dart';
 
-void main() => runApp(MyApp());
-
+void main()  {
+   var blocProvider = BlocProvider(
+    create: (context) => HnBloc(),
+    child: MyApp(),
+  );
+  runApp(blocProvider);
+}
 class MyApp extends StatelessWidget {
+
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
@@ -49,21 +56,6 @@ class _MyHomePageState extends State<MyHomePage> {
   List<Article> _articles = [];
 //  List<Article> _getArticles = [];
 
-  List<int> _ids = [
-    22748247,
-    22768494,
-    22758218,
-    22774057,
-    22754461,
-    22764910,
-    22767843,
-    22769263,
-    22756053,
-    22762173,
-    22750850,
-    22766681
-  ];
-
   @override
   Widget build(BuildContext context) {
     // This method is rerun every time setState is called, for instance as done
@@ -79,22 +71,13 @@ class _MyHomePageState extends State<MyHomePage> {
         title: Text(widget.title),
       ),
       body: RefreshIndicator(
-        child: ListView(
-          children: _ids.map((i) =>
-            FutureBuilder<Article>(
-              future: _getArticle(i),
-              builder: (BuildContext context, AsyncSnapshot<Article> snapshot) {
-                if (snapshot.connectionState == ConnectionState.done) {
-                  return _buildItem(snapshot.data);
-                } else {
-                  return Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Center(child: CircularProgressIndicator(),),
-                  );
-                }
-              },
-            )
-          ).toList(),
+        child: 
+        BlocBuilder<HnBloc, HnState>(
+          builder: (context, state) {
+            return ListView(
+              children: state.articles.map((i) => _buildItem(i)).toList(),
+            );
+          },
         ),
         onRefresh: () async {
           await Future.delayed(Duration(seconds: 1));
@@ -104,21 +87,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
         },
       ),
-
-//      floatingActionButton: FloatingActionButton(
-//        onPressed: _incrementCounter,
-//        tooltip: 'Increment',
-//        child: Icon(Icons.add),
-//      ), // This trailing comma makes auto-formatting nicer for build methods.
     );
-  }
-
-  Future<Article> _getArticle(int id) async {
-    final storyUrl = "https://hacker-news.firebaseio.com/v0/item/${id}.json";
-    final storyRes = await http.get(storyUrl);
-    if (storyRes.statusCode == 200) {
-      return Article.fromJsonString(storyRes.body);
-    }
   }
 
   Widget _buildItem(Article article) {
