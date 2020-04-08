@@ -19,7 +19,7 @@ void main () {
         final storyUrl = "https://hacker-news.firebaseio.com/v0/item/${idList[0]}.json";
         final storyRes = await http.get(storyUrl);
         if (storyRes.statusCode == 200) {
-          expect(Article.fromJsonString(storyRes.body).type, "story");
+          expect(Article.fromJsonString(storyRes.body), isNotNull);
         }
 
       }
