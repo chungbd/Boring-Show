@@ -9,13 +9,7 @@ part 'hn_event.dart';
 part 'hn_state.dart';
 
 class HnBloc extends Bloc<HnEvent, HnState> {
-  List<int> _ids = [
-    22748247,
-    22768494,
-    22758218,
-    22774057,
-    22754461,
-    22764910,
+  List<int> _topIds = [
     22767843,
     22769263,
     22756053,
@@ -24,8 +18,17 @@ class HnBloc extends Bloc<HnEvent, HnState> {
     22766681
   ];
 
+  List<int> _newIds = [
+    22748247,
+    22768494,
+    22758218,
+    22774057,
+    22754461,
+    22764910,    
+  ];
+
   HnBloc() {
-    _updateArticles()
+    _updateArticles(_topIds)
     .then((val) {
       add(UpdatingArticleList(val));
     });
@@ -44,17 +47,33 @@ class HnBloc extends Bloc<HnEvent, HnState> {
   }
 
   Future<Article> _getArticle(int id) async {
-    final storyUrl = "https://hacker-news.firebaseio.com/v0/item/${id}.json";
+    final storyUrl = "https://hacker-news.firebaseio.com/v0/item/$id.json";
     final storyRes = await http.get(storyUrl);
     if (storyRes.statusCode == 200) {
       return Article.fromJsonString(storyRes.body);
     }
+    return null;
   }
 
-  Future<List<Article>> _updateArticles() async {
-    final futureArticles = _ids.map((id) => _getArticle(id));
+  Future<List<Article>> _updateArticles(List<int> ids) async {
+    final futureArticles = ids.map((id) => _getArticle(id)).where((i) => i != null);
     final articles = await Future.wait(futureArticles);
 
     return articles;
   }
+
+  updateNewArticle() {
+    _updateArticles(_newIds)
+    .then((val) {
+      add(UpdatingArticleList(val));
+    });    
+  }
+
+  updateTopArticle() {
+    _updateArticles(_topIds)
+    .then((val) {
+      add(UpdatingArticleList(val));
+    });    
+  }
+
 }

@@ -53,6 +53,7 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+  int _selectedIndex = 0;
   List<Article> _articles = [];
 //  List<Article> _getArticles = [];
 
@@ -87,7 +88,35 @@ class _MyHomePageState extends State<MyHomePage> {
 
         },
       ),
+      bottomNavigationBar: BottomNavigationBar(
+              items: const <BottomNavigationBarItem>[
+                BottomNavigationBarItem(
+                  title: Text('Top Stories'),
+                  icon: Icon(Icons.arrow_drop_up),
+                ),
+                BottomNavigationBarItem(
+                  title: Text('New Stories'),
+                  icon: Icon(Icons.new_releases),
+                ),
+              ],
+              currentIndex: _selectedIndex,
+              onTap: _onItemTapped,
+            ),
     );
+  }
+
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+
+    final bloc = BlocProvider.of<HnBloc>(context);
+
+    if (index == 0) {
+      bloc.updateTopArticle();
+    } else {
+      bloc.updateNewArticle();
+    }
   }
 
   Widget _buildItem(Article article) {
