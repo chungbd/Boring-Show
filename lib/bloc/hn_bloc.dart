@@ -30,7 +30,7 @@ class HnBloc extends Bloc<HnEvent, HnState> {
   HnBloc() {
     _updateArticles(_topIds)
     .then((val) {
-      add(UpdatingArticleList(val));
+      add(UpdatingArticleList(articles: val));
     });
   }
 
@@ -42,7 +42,11 @@ class HnBloc extends Bloc<HnEvent, HnState> {
     HnEvent event,
   ) async* {
     if (event is UpdatingArticleList) {
-      yield HnState(articles: event.articles);
+      yield state.copyWith(articles: event.articles);
+    }
+    
+    if (event is UpdatingLoadingState) {
+      yield state.copyWith(isLoading: event.isLoading);
     }
   }
 
@@ -63,16 +67,20 @@ class HnBloc extends Bloc<HnEvent, HnState> {
   }
 
   updateNewArticle() {
+    add(UpdatingLoadingState(isLoading: true));
     _updateArticles(_newIds)
     .then((val) {
-      add(UpdatingArticleList(val));
+      add(UpdatingLoadingState(isLoading: false));
+      add(UpdatingArticleList(articles: val));
     });    
   }
 
   updateTopArticle() {
+    add(UpdatingLoadingState(isLoading: true));
     _updateArticles(_topIds)
     .then((val) {
-      add(UpdatingArticleList(val));
+      add(UpdatingLoadingState(isLoading: false));
+      add(UpdatingArticleList(articles: val));
     });    
   }
 

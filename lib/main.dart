@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:hnapp/bloc/hn_bloc.dart';
 import 'json_parsing.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -66,11 +67,13 @@ class _MyHomePageState extends State<MyHomePage> {
     // fast, so that you can just rebuild anything that needs updating rather
     // than having to individually change instances of widgets.
     return Scaffold(
-      appBar: AppBar(
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
-      ),
+      appBar: 
+        AppBar(
+          // Here we take the value from the MyHomePage object that was created by
+          // the App.build method, and use it to set our appbar title.
+          title: Text(widget.title),
+          leading: LoadingWidget(),
+        ),
       body: RefreshIndicator(
         child: 
         BlocBuilder<HnBloc, HnState>(
@@ -137,5 +140,54 @@ class _MyHomePageState extends State<MyHomePage> {
         title: Text(article.title, style: TextStyle(fontSize: 20),),
       ),
     );
+  }
+}
+
+class LoadingWidget extends StatefulWidget {
+  const LoadingWidget({
+    Key key,
+  }) : super(key: key);
+
+  @override
+  _LoadingWidgetState createState() => _LoadingWidgetState();
+}
+
+class _LoadingWidgetState extends State<LoadingWidget> with TickerProviderStateMixin {
+  AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: Duration(seconds: 1)
+      );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return 
+      BlocBuilder<HnBloc, HnState>(
+        builder: (context, state) {
+          // if (state.isLoading) {
+            _controller.forward().then((f) {
+              _controller.reverse();
+            });
+            // _controller.reverse();
+            return FadeTransition(
+              child: Icon(FontAwesomeIcons.hackerNews),
+              opacity: 
+                Tween(begin: 0.5, end: 1.0)
+                .animate(
+                  CurvedAnimation(
+                    curve: Curves.easeIn, 
+                    parent: _controller
+                    )
+                ),
+              );
+          // }
+          // return Container();
+        },
+      );
   }
 }
