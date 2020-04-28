@@ -43,3 +43,9 @@ abstract class Article implements Built<Article, ArticleBuilder> {
     return fromJson(json);
   }
 }
+
+List<int> parseStoryIds(String jsonStr) {
+  var parsed = jsonDecode(jsonStr);
+  var listOfIds = List<int>.from(parsed);
+  return listOfIds;
+}

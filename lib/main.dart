@@ -116,9 +116,9 @@ class _MyHomePageState extends State<MyHomePage> {
     final bloc = BlocProvider.of<HnBloc>(context);
 
     if (index == 0) {
-      bloc.updateTopArticle();
+      bloc.add(UpdatingStoriesType(storiesType: StoriesType.topStories));
     } else {
-      bloc.updateNewArticle();
+      bloc.add(UpdatingStoriesType(storiesType: StoriesType.newStories));
     }
   }
 
@@ -130,7 +130,7 @@ class _MyHomePageState extends State<MyHomePage> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: <Widget>[
-                Text("${article.kids.length} comments"),
+                Text("${article.descendants} comments"),
                 IconButton(icon: Icon(Icons.launch), onPressed: () {
 
                 })

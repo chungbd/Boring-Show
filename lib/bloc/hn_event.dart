@@ -16,3 +16,10 @@ class UpdatingLoadingState extends HnEvent {
     this.isLoading,
   });
 }
+
+class UpdatingStoriesType extends HnEvent {
+  final StoriesType storiesType;
+  UpdatingStoriesType({
+    this.storiesType,
+  });
+}
