@@ -1,16 +1,19 @@
 import 'dart:collection';
 
+import 'package:flutter/foundation.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 import 'package:hnapp/bloc/hn_bloc.dart';
+import 'package:webview_flutter/webview_flutter.dart';
 
 import 'json_parsing.dart';
 
 void main() {
   var blocProvider = BlocProvider(
-    create: (context) => HnBloc(),
+    create: (context) => HnBloc(HnState()),
     child: MyApp(),
   );
   runApp(blocProvider);
@@ -60,7 +63,12 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   int _selectedIndex = 0;
   List<Article> _articles = [];
-//  List<Article> _getArticles = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _updateStoriesAtIndex(_selectedIndex);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -83,7 +91,14 @@ class _MyHomePageState extends State<MyHomePage> {
             onPressed: () async {
               var result =
                   await showSearch(context: context, delegate: ArticleSearch());
-              if (result != null) {}
+              if (result != null) {
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => HackerNewWebPage(
+                              url: result.url,
+                            )));
+              }
             },
           )
         ],
@@ -106,11 +121,11 @@ class _MyHomePageState extends State<MyHomePage> {
       bottomNavigationBar: BottomNavigationBar(
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(
-            title: Text('Top Stories'),
+            label: 'Top Stories',
             icon: Icon(Icons.arrow_drop_up),
           ),
           BottomNavigationBarItem(
-            title: Text('New Stories'),
+            label: 'New Stories',
             icon: Icon(Icons.new_releases),
           ),
         ],
@@ -125,6 +140,11 @@ class _MyHomePageState extends State<MyHomePage> {
       _selectedIndex = index;
     });
 
+    _updateStoriesAtIndex(index);
+  }
+
+  _updateStoriesAtIndex(int index) {
+    // ignore: close_sinks
     final bloc = BlocProvider.of<HnBloc>(context);
 
     if (index == 0) {
@@ -143,8 +163,27 @@ class _MyHomePageState extends State<MyHomePage> {
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: <Widget>[
               Text("${article.descendants} comments"),
-              IconButton(icon: Icon(Icons.launch), onPressed: () {})
+              IconButton(
+                  icon: Icon(Icons.launch),
+                  onPressed: () {
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => HackerNewWebPage(
+                                  url: article.url,
+                                )));
+                  })
             ],
+          ),
+          Container(
+            height: 200,
+            child: WebView(
+              initialUrl: article.url,
+              javascriptMode: JavascriptMode.unrestricted,
+              gestureRecognizers: Set()
+                ..add(Factory<VerticalDragGestureRecognizer>(
+                    () => VerticalDragGestureRecognizer())),
+            ),
           )
         ],
         title: Text(
@@ -268,6 +307,24 @@ class ArticleSearch extends SearchDelegate<Article> {
               .toList(),
         );
       },
+    );
+  }
+}
+
+class HackerNewWebPage extends StatelessWidget {
+  const HackerNewWebPage({Key key, this.url}) : super(key: key);
+
+  final String url;
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text("Web Page"),
+      ),
+      body: WebView(
+        initialUrl: url,
+        javascriptMode: JavascriptMode.unrestricted,
+      ),
     );
   }
 }

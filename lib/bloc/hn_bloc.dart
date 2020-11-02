@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:collection';
 
-
 import 'package:bloc/bloc.dart';
 import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
@@ -14,8 +13,10 @@ part 'hn_state.dart';
 class HnBloc extends Bloc<HnEvent, HnState> {
   HashMap<int, Article> _cachedArticles = HashMap<int, Article>();
 
-  @override
-  HnState get initialState => HnState();
+  HnBloc(HnState initialState) : super(initialState);
+
+  // @override
+  // HnState get initialState => HnState();
 
   @override
   Stream<HnState> mapEventToState(
@@ -24,7 +25,7 @@ class HnBloc extends Bloc<HnEvent, HnState> {
     if (event is UpdatingArticleList) {
       yield state.copyWith(articles: event.articles);
     }
-    
+
     if (event is UpdatingLoadingState) {
       yield state.copyWith(isLoading: event.isLoading);
     }
@@ -49,13 +50,14 @@ class HnBloc extends Bloc<HnEvent, HnState> {
         throw HackerNewsApiError(message: "Article $id couldn't be fetched");
       }
       _cachedArticles[id] = Article.fromJsonString(storyRes.body);
-    } 
-      
+    }
+
     return _cachedArticles[id];
   }
 
   Future<List<Article>> _updateArticles(List<int> ids) async {
-    final futureArticles = ids.map((id) => _getArticle(id)).where((i) => i != null);
+    final futureArticles =
+        ids.map((id) => _getArticle(id)).where((i) => i != null);
     final articles = await Future.wait(futureArticles);
 
     return articles;
@@ -63,7 +65,8 @@ class HnBloc extends Bloc<HnEvent, HnState> {
 
   Future<List<int>> _getIds(StoriesType storiesType) async {
     final partURL = storiesType == StoriesType.newStories ? "new" : "top";
-    final storyUrl = "https://hacker-news.firebaseio.com/v0/${partURL}stories.json";
+    final storyUrl =
+        "https://hacker-news.firebaseio.com/v0/${partURL}stories.json";
     final storyRes = await http.get(storyUrl);
     if (storyRes.statusCode != 200) {
       throw HackerNewsApiError(message: "$storiesType couldn't be fetched");
@@ -74,22 +77,19 @@ class HnBloc extends Bloc<HnEvent, HnState> {
   updateNewArticle() async {
     add(UpdatingLoadingState(isLoading: true));
 
-    _updateArticles(await _getIds(StoriesType.newStories))
-    .then((val) {
+    _updateArticles(await _getIds(StoriesType.newStories)).then((val) {
       add(UpdatingLoadingState(isLoading: false));
       add(UpdatingArticleList(articles: val));
-    });    
+    });
   }
 
   updateTopArticle() async {
     add(UpdatingLoadingState(isLoading: true));
-    _updateArticles(await _getIds(StoriesType.topStories))
-    .then((val) {
+    _updateArticles(await _getIds(StoriesType.topStories)).then((val) {
       add(UpdatingLoadingState(isLoading: false));
       add(UpdatingArticleList(articles: val));
-    });    
+    });
   }
-
 }
 
 class HackerNewsApiError extends Error {
