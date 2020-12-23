@@ -22,8 +22,12 @@ class HnBloc extends Bloc<HnEvent, HnState> {
   Stream<HnState> mapEventToState(
     HnEvent event,
   ) async* {
-    if (event is UpdatingArticleList) {
-      yield state.copyWith(articles: event.articles);
+    if (event is UpdatingTopArticleList) {
+      yield state.copyWith(topArticles: event.articles);
+    }
+
+    if (event is UpdatingNewArticleList) {
+      yield state.copyWith(newArticles: event.articles);
     }
 
     if (event is UpdatingLoadingState) {
@@ -79,7 +83,7 @@ class HnBloc extends Bloc<HnEvent, HnState> {
 
     _updateArticles(await _getIds(StoriesType.newStories)).then((val) {
       add(UpdatingLoadingState(isLoading: false));
-      add(UpdatingArticleList(articles: val));
+      add(UpdatingNewArticleList(articles: val));
     });
   }
 
@@ -87,7 +91,7 @@ class HnBloc extends Bloc<HnEvent, HnState> {
     add(UpdatingLoadingState(isLoading: true));
     _updateArticles(await _getIds(StoriesType.topStories)).then((val) {
       add(UpdatingLoadingState(isLoading: false));
-      add(UpdatingArticleList(articles: val));
+      add(UpdatingTopArticleList(articles: val));
     });
   }
 }

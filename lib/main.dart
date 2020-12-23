@@ -62,7 +62,7 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   int _selectedIndex = 0;
-  List<Article> _articles = [];
+  // List<Article> _articles = [];
 
   @override
   void initState() {
@@ -106,16 +106,24 @@ class _MyHomePageState extends State<MyHomePage> {
       body: RefreshIndicator(
         child: BlocBuilder<HnBloc, HnState>(
           builder: (context, state) {
-            return ListView(
-              children: state.articles.map((i) => _buildItem(i)).toList(),
-            );
+            return _selectedIndex == 0
+                ? ListView(
+                    key: PageStorageKey(0),
+                    children:
+                        state.topArticles.map((i) => _buildItem(i)).toList(),
+                  )
+                : ListView(
+                    key: PageStorageKey(1),
+                    children:
+                        state.newArticles.map((i) => _buildItem(i)).toList(),
+                  );
           },
         ),
         onRefresh: () async {
           await Future.delayed(Duration(seconds: 1));
-          setState(() {
-            _articles.removeAt(0);
-          });
+          // setState(() {
+          //   _articles.removeAt(0);
+          // });
         },
       ),
       bottomNavigationBar: BottomNavigationBar(
@@ -156,6 +164,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   Widget _buildItem(Article article) {
     return Padding(
+      key: PageStorageKey(article.title),
       padding: const EdgeInsets.all(16.0),
       child: ExpansionTile(
         children: [
@@ -268,7 +277,7 @@ class ArticleSearch extends SearchDelegate<Article> {
   Widget buildResults(BuildContext context) {
     return BlocBuilder<HnBloc, HnState>(
       builder: (context, state) {
-        final results = state.articles.where((element) {
+        final results = state.topArticles.where((element) {
           return element.title.toLowerCase().contains(query);
         });
 
@@ -291,7 +300,7 @@ class ArticleSearch extends SearchDelegate<Article> {
   Widget buildSuggestions(BuildContext context) {
     return BlocBuilder<HnBloc, HnState>(
       builder: (context, state) {
-        final results = state.articles.where((element) {
+        final results = state.topArticles.where((element) {
           return element.title.toLowerCase().contains(query);
         });
 

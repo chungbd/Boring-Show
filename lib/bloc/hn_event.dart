@@ -3,9 +3,16 @@ part of 'hn_bloc.dart';
 @immutable
 abstract class HnEvent {}
 
-class UpdatingArticleList extends HnEvent {
-  final List<Article> articles;  
-  UpdatingArticleList({
+class UpdatingTopArticleList extends HnEvent {
+  final List<Article> articles;
+  UpdatingTopArticleList({
+    this.articles,
+  });
+}
+
+class UpdatingNewArticleList extends HnEvent {
+  final List<Article> articles;
+  UpdatingNewArticleList({
     this.articles,
   });
 }
