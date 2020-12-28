@@ -23,6 +23,8 @@ dependencies:
   flutter_bloc: ^6.1.0
   font_awesome_flutter: ^8.8.1
   webview_flutter: ^1.0.5
+  rxdart: ^0.25.0
+  shared_preferences: ^0.5.12+4
   
   flutter:
     sdk: flutter

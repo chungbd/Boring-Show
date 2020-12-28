@@ -5,22 +5,32 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:webview_flutter/webview_flutter.dart';
 
 import 'package:hnapp/bloc/hn_bloc.dart';
-import 'package:webview_flutter/webview_flutter.dart';
 
 import 'json_parsing.dart';
 
 void main() {
+  final prefsBloc = PrefsBloc();
+
   var blocProvider = BlocProvider(
     create: (context) => HnBloc(HnState()),
-    child: MyApp(),
+    child: MyApp(
+      prefsBloc: prefsBloc,
+    ),
   );
   runApp(blocProvider);
 }
 
 class MyApp extends StatelessWidget {
   // This widget is the root of your application.
+  const MyApp({
+    Key key,
+    this.prefsBloc,
+  }) : super(key: key);
+
+  final PrefsBloc prefsBloc;
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -37,13 +47,18 @@ class MyApp extends StatelessWidget {
         // is not restarted.
         primarySwatch: Colors.blue,
       ),
-      home: MyHomePage(title: 'Flutter Demo Home Page'),
+      home: MyHomePage(
+        title: 'Flutter Demo Home Page',
+        prefsBloc: prefsBloc,
+      ),
     );
   }
 }
 
 class MyHomePage extends StatefulWidget {
-  MyHomePage({Key key, this.title}) : super(key: key);
+  MyHomePage({Key key, this.title, this.prefsBloc}) : super(key: key);
+
+  final PrefsBloc prefsBloc;
 
   // This widget is the home page of your application. It is stateful, meaning
   // that it has a State object (defined below) that contains fields that affect
@@ -136,6 +151,10 @@ class _MyHomePageState extends State<MyHomePage> {
             label: 'New Stories',
             icon: Icon(Icons.new_releases),
           ),
+          BottomNavigationBarItem(
+            label: 'Preferences',
+            icon: Icon(Icons.settings),
+          ),
         ],
         currentIndex: _selectedIndex,
         onTap: _onItemTapped,
@@ -148,7 +167,22 @@ class _MyHomePageState extends State<MyHomePage> {
       _selectedIndex = index;
     });
 
+    if (index == 2) {
+      // Show Preferences
+      _showPrefsSheet(context, widget.prefsBloc);
+    }
+
     _updateStoriesAtIndex(index);
+  }
+
+  _showPrefsSheet(BuildContext context, PrefsBloc bloc) {
+    showModalBottomSheet(
+        context: context,
+        builder: (context) {
+          return PrefsSheet(
+            prefsBloc: bloc,
+          );
+        });
   }
 
   _updateStoriesAtIndex(int index) {
@@ -184,16 +218,25 @@ class _MyHomePageState extends State<MyHomePage> {
                   })
             ],
           ),
-          Container(
-            height: 200,
-            child: WebView(
-              initialUrl: article.url,
-              javascriptMode: JavascriptMode.unrestricted,
-              gestureRecognizers: Set()
-                ..add(Factory<VerticalDragGestureRecognizer>(
-                    () => VerticalDragGestureRecognizer())),
-            ),
-          )
+          StreamBuilder<PrefsState>(
+            stream: widget.prefsBloc.currentPrefs,
+            builder: (BuildContext context, AsyncSnapshot snapshot) {
+              if (snapshot.data?.showWebView == true) {
+                return Container(
+                  height: 200,
+                  child: WebView(
+                    initialUrl: article.url,
+                    javascriptMode: JavascriptMode.unrestricted,
+                    gestureRecognizers: Set()
+                      ..add(Factory<VerticalDragGestureRecognizer>(
+                          () => VerticalDragGestureRecognizer())),
+                  ),
+                );
+              }
+
+              return Container();
+            },
+          ),
         ],
         title: Text(
           article.title,
@@ -333,6 +376,32 @@ class HackerNewWebPage extends StatelessWidget {
       body: WebView(
         initialUrl: url,
         javascriptMode: JavascriptMode.unrestricted,
+      ),
+    );
+  }
+}
+
+class PrefsSheet extends StatelessWidget {
+  const PrefsSheet({Key key, this.prefsBloc}) : super(key: key);
+
+  final PrefsBloc prefsBloc;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Center(
+        child: StreamBuilder<PrefsState>(
+          stream: prefsBloc.currentPrefs,
+          builder: (BuildContext context, AsyncSnapshot snapshot) {
+            return snapshot.hasData
+                ? Switch(
+                    value: snapshot.data.showWebView,
+                    onChanged: (val) {
+                      prefsBloc.showWebViewPref.add(val);
+                    })
+                : Text("Nothing");
+          },
+        ),
       ),
     );
   }

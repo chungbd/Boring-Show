@@ -6,6 +6,8 @@ import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
 
 import 'package:hnapp/json_parsing.dart';
+import 'package:rxdart/subjects.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 part 'hn_event.dart';
 part 'hn_state.dart';
@@ -101,4 +103,45 @@ class HackerNewsApiError extends Error {
   HackerNewsApiError({
     this.message,
   });
+}
+
+class PrefsState {
+  final bool showWebView;
+  const PrefsState(this.showWebView);
+}
+
+class PrefsBloc {
+  static const showWebViewKey = "showWebView";
+
+  final _currentPrefs = BehaviorSubject.seeded(PrefsState(false));
+  final _showWebViewPref = StreamController<bool>();
+
+  PrefsBloc() {
+    _loadSharedPrefs();
+    _showWebViewPref.stream.listen((event) {
+      _saveNewPrefs(PrefsState(event));
+    });
+  }
+
+  Stream<PrefsState> get currentPrefs => _currentPrefs.stream;
+  Sink<bool> get showWebViewPref => _showWebViewPref.sink;
+
+  void close() {
+    _showWebViewPref.close();
+    _currentPrefs.close();
+  }
+
+  Future<void> _loadSharedPrefs() async {
+    Future.delayed(Duration(seconds: 1), () async {
+      final sharedPrefs = await SharedPreferences.getInstance();
+      final showWebView = sharedPrefs.getBool(showWebViewKey) ?? true;
+      _currentPrefs.add(PrefsState(showWebView));
+    });
+  }
+
+  Future<void> _saveNewPrefs(PrefsState newState) async {
+    final sharedPrefs = await SharedPreferences.getInstance();
+    await sharedPrefs.setBool(showWebViewKey, newState.showWebView);
+    _currentPrefs.add(newState);
+  }
 }
