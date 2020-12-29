@@ -48,7 +48,6 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
       ),
       home: MyHomePage(
-        title: 'Flutter Demo Home Page',
         prefsBloc: prefsBloc,
       ),
     );
@@ -56,7 +55,7 @@ class MyApp extends StatelessWidget {
 }
 
 class MyHomePage extends StatefulWidget {
-  MyHomePage({Key key, this.title, this.prefsBloc}) : super(key: key);
+  MyHomePage({Key key, this.prefsBloc}) : super(key: key);
 
   final PrefsBloc prefsBloc;
 
@@ -68,8 +67,6 @@ class MyHomePage extends StatefulWidget {
   // case the title) provided by the parent (in this case the App widget) and
   // used by the build method of the State. Fields in a Widget subclass are
   // always marked "final".
-
-  final String title;
 
   @override
   _MyHomePageState createState() => _MyHomePageState();
@@ -97,7 +94,7 @@ class _MyHomePageState extends State<MyHomePage> {
       appBar: AppBar(
         // Here we take the value from the MyHomePage object that was created by
         // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
+        title: const Text("Hacker News"),
         elevation: 0.0,
         leading: LoadingWidget(),
         actions: <Widget>[
@@ -121,17 +118,13 @@ class _MyHomePageState extends State<MyHomePage> {
       body: RefreshIndicator(
         child: BlocBuilder<HnBloc, HnState>(
           builder: (context, state) {
-            return _selectedIndex == 0
-                ? ListView(
-                    key: PageStorageKey(0),
-                    children:
-                        state.topArticles.map((i) => _buildItem(i)).toList(),
-                  )
-                : ListView(
-                    key: PageStorageKey(1),
-                    children:
-                        state.newArticles.map((i) => _buildItem(i)).toList(),
-                  );
+            return ListView(
+              key: PageStorageKey(_selectedIndex),
+              children:
+                  (_selectedIndex == 0 ? state.topArticles : state.newArticles)
+                      .map((i) => _buildItem(i))
+                      .toList(),
+            );
           },
         ),
         onRefresh: () async {
@@ -192,6 +185,7 @@ class _MyHomePageState extends State<MyHomePage> {
     if (index == 0) {
       bloc.add(UpdatingStoriesType(storiesType: StoriesType.topStories));
     } else {
+      assert(index == 2);
       bloc.add(UpdatingStoriesType(storiesType: StoriesType.newStories));
     }
   }
