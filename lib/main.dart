@@ -1,10 +1,9 @@
-import 'dart:collection';
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:hnapp/src/widgets/headline.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
 import 'package:hnapp/bloc/hn_bloc.dart';
@@ -90,16 +89,23 @@ class _MyHomePageState extends State<MyHomePage> {
     // The Flutter framework has been optimized to make rerunning build methods
     // fast, so that you can just rebuild anything that needs updating rather
     // than having to individually change instances of widgets.
+    final theme = Theme.of(context);
+
     return Scaffold(
       appBar: AppBar(
         // Here we take the value from the MyHomePage object that was created by
         // the App.build method, and use it to set our appbar title.
-        title: const Text("Hacker News"),
+        title: HeadLine(
+          text: const ["Hacker News: Top", "Hacker News: New"][_selectedIndex],
+          index: _selectedIndex,
+        ),
         elevation: 0.0,
         leading: LoadingWidget(),
+        backgroundColor: theme.scaffoldBackgroundColor,
         actions: <Widget>[
           IconButton(
             icon: Icon(Icons.search),
+            color: Colors.black,
             onPressed: () async {
               var result =
                   await showSearch(context: context, delegate: ArticleSearch());
@@ -156,6 +162,7 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   void _onItemTapped(int index) {
+    print("index $index");
     setState(() {
       _selectedIndex = index;
     });
@@ -185,7 +192,7 @@ class _MyHomePageState extends State<MyHomePage> {
     if (index == 0) {
       bloc.add(UpdatingStoriesType(storiesType: StoriesType.topStories));
     } else {
-      assert(index == 2);
+      // assert(index == 2);
       bloc.add(UpdatingStoriesType(storiesType: StoriesType.newStories));
     }
   }
@@ -271,7 +278,10 @@ class _LoadingWidgetState extends State<LoadingWidget>
         });
         // _controller.reverse();
         return FadeTransition(
-          child: Icon(FontAwesomeIcons.hackerNews),
+          child: Icon(
+            FontAwesomeIcons.hackerNews,
+            color: Colors.black,
+          ),
           opacity: Tween(begin: 0.5, end: 1.0).animate(
               CurvedAnimation(curve: Curves.easeIn, parent: _controller)),
         );
